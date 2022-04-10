@@ -34,6 +34,7 @@ fn main() {
     let mut opts = Options::new();
     opts.optopt("o", "output", "set output file name", "NAME");
     opts.optopt("f", "fill", "fill image with bytes", "BYTE");
+    opts.optflag("v", "version", "print version info");
     opts.optflag("q", "quiet", "keep silence");
     opts.optflag("h", "help", "print this help menu");
     let matches = match opts.parse(&args[1..]) {
@@ -42,6 +43,11 @@ fn main() {
             panic!("{}", f.to_string())
         }
     };
+
+    if matches.opt_present("v") {
+        println!("{}", env!("GIT_VERSION"));
+        return;
+    }
 
     if matches.opt_present("h") {
         print_usage(&program, opts);
@@ -125,5 +131,4 @@ fn main() {
         println!("unable to open output file: {}", &output);
         return;
     }
-
 }

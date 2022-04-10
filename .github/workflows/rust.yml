@@ -5,9 +5,9 @@ on:
     tags: 
       - '**'
 #      - 'v[0-9]+.[0-9]+.[0-9]+'
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+#    branches: [ main ]
+#  pull_request:
+#    branches: [ main ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -25,6 +25,10 @@ jobs:
 #    - name: Run tests
 #      run: cargo test --verbose
 
+    - name: version
+      run: echo "::set-output name=version::$(./target/release/mkimage --version)"
+      id: version
+
     - name: Compress output
       uses: a7ul/tar-action@v1.1.0
       id: compress
@@ -33,11 +37,7 @@ jobs:
         cwd: ./target/release
         files: |
           ./mkimage
-        outPath: mkimage.linux-amd64.tar.gz
-
-    - name: version
-      run: echo "::set-output name=version::$(./target/release/mkimage --version)"
-      id: version
+        outPath: mkimage-${{ steps.version.outputs.version }}.linux-amd64.tar.gz
 
     - name: release
       uses: actions/create-release@v1
@@ -45,8 +45,7 @@ jobs:
       with:
         draft: false
         prerelease: false
-#        release_name: ${{ steps.version.outputs.version }}
-        release_name: ${{ github.ref }}
+        release_name: ${{ steps.version.outputs.version }}
         tag_name: ${{ github.ref }}
 #        body_path: CHANGELOG.md
       env:
@@ -58,6 +57,6 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./target/release/mkimage.linux-amd64.tar.gz
-        asset_name: mkimage.linux-amd64.tar.gz
+        asset_path: mkimage-${{ steps.version.outputs.version }}.linux-amd64.tar.gz
+        asset_name: mkimage-${{ steps.version.outputs.version }}.linux-amd64.tar.gz
         asset_content_type: application/gzip
